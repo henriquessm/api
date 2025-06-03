@@ -3,23 +3,18 @@ nav:
   - Início: index.md
   - Exchange API:
     - Projeto: projeto.md
-    - Atividades: atividades.md
     - Apresentação: apresentacao.md
   - Product API:
     - Projeto: product_projeto.md
-    - Atividades: product_atividades.md
     - Apresentação: product_apresentacao.md
   - Order API:
     - Projeto: order_projeto.md
-    - Atividades: order_atividades.md
     - Apresentação: order_apresentacao.md
   - Jenkins Pipeline:
     - Projeto: jenkins_projeto.md
-    - Atividades: jenkins_atividades.md
     - Apresentação: jenkins_apresentacao.md
   - Kubernetes Minikube:
     - Projeto: k8s_projeto.md
-    - Atividades: k8s_atividades.md
     - Apresentação: k8s_apresentacao.md
 theme:
   name: material
