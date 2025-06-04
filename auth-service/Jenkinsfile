@@ -10,6 +10,8 @@ pipeline {
         SERVICE = 'auth'
         NAME = "henriquessm/${env.SERVICE}"
         REGISTRY_CREDENTIALS = 'dockerhub-credentials'
+        AWS_REGION = "us-east-1"
+        CLUSTER_NAME = "projeto-humberto"
     }
     
     stages {
@@ -49,6 +51,17 @@ pipeline {
                             docker push ${env.NAME}:${env.BUILD_NUMBER}
                         """
                     }
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([string(credentialsId: 'aws-creds-profile', variable: 'AWS_PROFILE')]) {
+                    sh """
+                        aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+                        kubectl set image deployment/auth auth=$NAME:${BUILD_NUMBER}
+                    """
                 }
             }
         }

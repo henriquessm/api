@@ -1,17 +1,19 @@
 pipeline {
     agent any
-    
+
     tools {
         maven 'maven-3'
         jdk 'jdk-21'
     }
-    
+
     environment {
-        SERVICE = 'account'
+        SERVICE = 'order'
         NAME = "henriquessm/${env.SERVICE}"
         REGISTRY_CREDENTIALS = 'dockerhub-credentials'
+        AWS_REGION = "us-east-1"
+        CLUSTER_NAME = "projeto-humberto"
     }
-    
+
     stages {
         stage('Checkout Dependencies') {
             steps {
@@ -20,30 +22,32 @@ pipeline {
                         git branch: 'main', url: 'https://github.com/henriquessm/store-account.git'
                         sh 'mvn clean install -DskipTests'
                     }
-                    
+
                     dir('libs/auth') {
                         git branch: 'main', url: 'https://github.com/henriquessm/store-auth.git'
                         sh 'mvn clean install -DskipTests'
                     }
+
                     dir('libs/product') {
                         git branch: 'main', url: 'https://github.com/henriquessm/store-product.git'
-                        sh 'mvn clean install -DskipTests'}
+                        sh 'mvn clean install -DskipTests'
+                    }
                 }
             }
         }
-        
-        stage('Build') { 
+
+        stage('Build') {
             steps {
                 sh 'mvn -B -DskipTests clean package'
             }
-        }      
-        
+        }
+
         stage('Build & Push Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS, 
-                                                   usernameVariable: 'USERNAME', 
-                                                   passwordVariable: 'TOKEN')]) {
+                    withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS,
+                                                     usernameVariable: 'USERNAME',
+                                                     passwordVariable: 'TOKEN')]) {
                         sh """
                             docker login -u \$USERNAME -p \$TOKEN
                             docker build -t ${env.NAME}:latest .
@@ -53,7 +57,18 @@ pipeline {
                         """
                     }
                 }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([string(credentialsId: 'aws-creds-profile', variable: 'AWS_PROFILE')]) {
+                    sh """
+                        aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+                        kubectl set image deployment/order order=$NAME:${BUILD_NUMBER}
+                    """
                 }
             }
         }
+    }
 }

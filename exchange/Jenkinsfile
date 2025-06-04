@@ -1,12 +1,14 @@
 pipeline {
     agent any
-    
+
     environment {
         SERVICE = 'exchange'
         NAME = "henriquessm/${env.SERVICE}"
         REGISTRY_CREDENTIALS = 'dockerhub-credentials'
+        AWS_REGION = "us-east-1"
+        CLUSTER_NAME = "projeto-humberto"
     }
-    
+
     stages {
         stage('Install Dependencies') {
             steps {
@@ -14,21 +16,21 @@ pipeline {
                     sh '''
                         python3 --version || echo "Python not found"
                         pip3 --version || echo "Pip not found"
-                        
-                        # Se existir requirements.txt, instalar dependências
+
                         if [ -f "requirements.txt" ]; then
                             pip3 install -r requirements.txt || echo "Failed to install requirements"
                         fi
                     '''
                 }
             }
-        }        
+        }
+
         stage('Build & Push Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS, 
-                                                   usernameVariable: 'USERNAME', 
-                                                   passwordVariable: 'TOKEN')]) {
+                    withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS,
+                                                     usernameVariable: 'USERNAME',
+                                                     passwordVariable: 'TOKEN')]) {
                         sh """
                             docker login -u \$USERNAME -p \$TOKEN
                             docker build -t ${env.NAME}:latest .
@@ -37,6 +39,17 @@ pipeline {
                             docker push ${env.NAME}:${env.BUILD_NUMBER}
                         """
                     }
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([string(credentialsId: 'aws-creds-profile', variable: 'AWS_PROFILE')]) {
+                    sh """
+                        aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+                        kubectl set image deployment/exchange exchange=$NAME:${BUILD_NUMBER}
+                    """
                 }
             }
         }
