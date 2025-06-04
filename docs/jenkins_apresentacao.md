@@ -6,7 +6,7 @@
 
 ## Vídeo
 
-[Assista à apresentação (2-3 min)](https://youtu.be/gr6FnkE71CM)
+[Vídeo de apresentação ](https://youtu.be/gr6FnkE71CM)
 
 ## Demonstração
 
