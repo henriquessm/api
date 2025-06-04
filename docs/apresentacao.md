@@ -6,7 +6,7 @@
 
 ## Vídeo
 
-[Link do vídeo de apresentação](https://youtube.com/...)
+[Link do vídeo de apresentação](https://youtu.be/8oplA4nQYuc)
 
 ## Demonstração
 
