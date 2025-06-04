@@ -1,6 +1,6 @@
 site_name: Projeto APIs - Exchange e Product
 nav:
-  -Individual APIs:
+  - Individual APIs:
     - Início: index.md
     - Exchange API:
       - Projeto: projeto.md
